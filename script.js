@@ -5,6 +5,7 @@ const hp1El = document.getElementById('hp1');
 const hp2El = document.getElementById('hp2');
 const announceEl = document.getElementById('announce');
 const roundEl = document.getElementById('round');
+const modeSelEl = document.getElementById('modeSelect');
 
 const W = cvs.width, H = cvs.height;
 const GRAV = 0.9, FRICTION = 0.82;
@@ -55,12 +56,30 @@ class Input {
 const map1 = { KeyA:'left', KeyD:'right', KeyW:'up', KeyS:'down', KeyF:'lp', KeyG:'hp', KeyR:'plane' };
 const map2 = { ArrowLeft:'left', ArrowRight:'right', ArrowUp:'up', ArrowDown:'down', KeyK:'lp', KeyL:'hp', KeyP:'plane' };
 const in1 = new Input(map1), in2 = new Input(map2);
-addEventListener('keydown', e=>{ in1.onKey(true,e.code); in2.onKey(true,e.code); });
-addEventListener('keyup',   e=>{ in1.onKey(false,e.code); in2.onKey(false,e.code); });
+let cpuMode = false;
+addEventListener('keydown', e=>{ in1.onKey(true,e.code); if(!cpuMode) in2.onKey(true,e.code); });
+addEventListener('keyup',   e=>{ in1.onKey(false,e.code); if(!cpuMode) in2.onKey(false,e.code); });
 
 // ユーティリティ
 function rectsOverlap(a,b){
   return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
+}
+
+// 簡易CPU制御
+class CPUController{
+  constructor(input, self, opponent){
+    this.input=input; this.self=self; this.opponent=opponent;
+  }
+  update(){
+    const i=this.input; i.keys.clear();
+    const s=this.self, o=this.opponent;
+    const dx=o.x - s.x;
+    if(Math.abs(dx)>60){ i.keys.add(dx>0?'right':'left'); }
+    if(s.grounded && Math.random()<0.01) i.keys.add('up');
+    if(Math.abs(dx)<80 && Math.random()<0.05) i.keys.add('lp');
+    if(Math.abs(dx)<120 && Math.random()<0.02) i.keys.add('hp');
+    if(s.plane!==o.plane && Math.random()<0.02) i.keys.add('plane');
+  }
 }
 
 // キャラクター基底
@@ -321,6 +340,16 @@ class Rival extends Character{
 const p1 = new Hero(W*0.3);
 const p2 = new Rival(W*0.7);
 
+let cpu=null;
+
+function startGame(vsCPU){
+  cpuMode = vsCPU;
+  modeSelEl.style.display='none';
+  cpu = cpuMode ? new CPUController(in2, p2, p1) : null;
+  showAnn('ROUND 1', 60);
+  setTimeout(resetRound, 900);
+}
+
 function resetRound(){
   for(const p of [p1,p2]){
     p.y=GROUND_Y; p.vx=p.vy=0; p.plane=0; p.stun=0; p.attack=null; p.dead=false; p.guarding=false; p.guardTimer=0; p.homingLock=false;
@@ -330,8 +359,6 @@ function resetRound(){
   setTimeout(()=>showAnn('FIGHT!', 60), 1000);
   state='fight';
 }
-showAnn('ROUND 1', 60);
-setTimeout(resetRound, 900);
 
 // ステージ描画
 function drawStage(){
@@ -355,6 +382,7 @@ function update(){
 
   if(state==='fight'){
     p1.update(in1, p2);
+    if(cpu) cpu.update();
     p2.update(in2, p1);
 
     function resolveAttack(attacker, defender){
@@ -404,3 +432,6 @@ function update(){
   requestAnimationFrame(update);
 }
 update();
+
+document.getElementById('btnP2').addEventListener('click', ()=>startGame(false));
+document.getElementById('btnCPU').addEventListener('click', ()=>startGame(true));

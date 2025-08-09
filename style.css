@@ -10,3 +10,5 @@ body { margin: 0; background:#111; color:#eee; font-family: system-ui, sans-seri
 #announce { position:absolute; top:45%; left:50%; transform:translate(-50%,-50%); font-size:48px; font-weight:900; text-shadow:0 2px 8px #000; opacity:0; transition:opacity .2s; }
 .help { position:absolute; bottom:8px; left:16px; right:16px; font-size:12px; opacity:.8; }
 #game { display:block; margin:0 auto; background:linear-gradient(#1b2b4a 40%, #3a2a1a 40% 60%, #1a1a1a 60%); border-top:4px solid #000; }
+#modeSelect { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; background:rgba(0,0,0,.6); }
+#modeSelect button { margin:8px; padding:12px 24px; font-size:20px; cursor:pointer; }
