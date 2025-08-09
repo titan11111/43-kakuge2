@@ -1,0 +1,34 @@
+<!-- ===== index.html ===== -->
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>2-Line Fighter (Homage)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="ui">
+    <div class="names">
+      <span id="p1name">Hero</span>
+      <span id="round">ROUND 1</span>
+      <span id="p2name">Rival</span>
+    </div>
+    <div class="bars">
+      <div class="bar"><div id="hp1" class="hp"></div></div>
+      <div class="bar"><div id="hp2" class="hp"></div></div>
+    </div>
+    <div id="announce"></div>
+    <div class="help">
+      <div>
+        <b>1P</b> A/D 移動, W ジャンプ, S しゃがみ, F 弱, G 強, R ライン, F+↘（QCF）:飛び, 後ろでガード, F+G:ホーミング, 前+G:突進, 下+G:対空
+      </div>
+      <div>
+        <b>2P</b> ←/→ 移動, ↑ ジャンプ, ↓ しゃがみ, K 弱, L 強, P ライン, K+↘:飛び, 後ろでガード, K+L:ホーミング, 前+L:突進, 下+L:対空
+      </div>
+    </div>
+  </div>
+  <canvas id="game" width="960" height="540"></canvas>
+  <script src="main.js"></script>
+</body>
+</html>

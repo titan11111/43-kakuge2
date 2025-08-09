@@ -1,0 +1,12 @@
+/* ===== style.css ===== */
+* { box-sizing: border-box; }
+body { margin: 0; background:#111; color:#eee; font-family: system-ui, sans-serif; }
+.ui { position: absolute; inset: 0; pointer-events:none; }
+.names { display:flex; justify-content:space-between; padding:8px 16px; font-weight:700; letter-spacing:.5px; }
+#round { opacity:.9 }
+.bars { display:flex; justify-content:space-between; padding:0 16px; gap:16px; }
+.bar { width:45%; height:18px; background:#333; border:2px solid #666; }
+.hp { height:100%; width:100%; background:linear-gradient(90deg,#19c37d,#f5d90a); transition:width .15s linear; }
+#announce { position:absolute; top:45%; left:50%; transform:translate(-50%,-50%); font-size:48px; font-weight:900; text-shadow:0 2px 8px #000; opacity:0; transition:opacity .2s; }
+.help { position:absolute; bottom:8px; left:16px; right:16px; font-size:12px; opacity:.8; }
+#game { display:block; margin:0 auto; background:linear-gradient(#1b2b4a 40%, #3a2a1a 40% 60%, #1a1a1a 60%); border-top:4px solid #000; }
