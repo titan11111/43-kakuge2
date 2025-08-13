@@ -7,6 +7,10 @@ const announceEl = document.getElementById('announce');
 const roundEl = document.getElementById('round');
 const modeSelEl = document.getElementById('modeSelect');
 
+['touchstart','touchmove'].forEach(ev=>{
+  cvs.addEventListener(ev, e=>e.preventDefault(), {passive:false});
+});
+
 const W = cvs.width, H = cvs.height;
 const GRAV = 0.9, FRICTION = 0.82;
 const GROUND_Y = H * 0.60;
