@@ -64,6 +64,26 @@ let cpuMode = false;
 addEventListener('keydown', e=>{ in1.onKey(true,e.code); if(!cpuMode) in2.onKey(true,e.code); });
 addEventListener('keyup',   e=>{ in1.onKey(false,e.code); if(!cpuMode) in2.onKey(false,e.code); });
 
+function setupMobileControls(){
+  if(!('ontouchstart' in window)) return;
+  const ctrl=document.getElementById('controls');
+  if(!ctrl) return;
+  ctrl.style.display='block';
+  const map={left:'KeyA', right:'KeyD', up:'KeyW', down:'KeyS', lp:'KeyF', hp:'KeyG', plane:'KeyR'};
+  ctrl.querySelectorAll('button').forEach(btn=>{
+    const act=btn.dataset.btn, code=map[act];
+    const start=e=>{ e.preventDefault(); in1.onKey(true,code); };
+    const end=e=>{ e.preventDefault(); in1.onKey(false,code); };
+    btn.addEventListener('touchstart',start);
+    btn.addEventListener('touchend',end);
+    btn.addEventListener('touchcancel',end);
+    btn.addEventListener('mousedown',start);
+    btn.addEventListener('mouseup',end);
+    btn.addEventListener('mouseleave',end);
+  });
+}
+setupMobileControls();
+
 // ユーティリティ
 function rectsOverlap(a,b){
   return a.x < b.x+b.w && a.x+a.w > b.x && a.y < b.y+b.h && a.y+a.h > b.y;
