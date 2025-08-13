@@ -16,6 +16,7 @@ const GRAV = 0.9, FRICTION = 0.82;
 const GROUND_Y = H * 0.60;
 const PLANES = [0, 48];
 let round = 1, state = 'intro';
+let wins1 = 0, wins2 = 0;
 
 // 画像（任意）: hero_sprites.png / rival_sprites.png があれば使用
 const heroSheet = new Image(); heroSheet.src = 'hero_sprites.png';
@@ -368,6 +369,9 @@ let cpu=null;
 
 function startGame(vsCPU){
   cpuMode = vsCPU;
+  wins1 = 0; wins2 = 0;
+  round = 1;
+  roundEl.textContent = 'ROUND 1';
   modeSelEl.style.display='none';
   cpu = cpuMode ? new CPUController(in2, p2, p1) : null;
   showAnn('ROUND 1', 60);
@@ -444,6 +448,16 @@ function update(){
 
     if(p1.dead || p2.dead){
       state='over';
+      if(p2.dead) wins1++; else if(p1.dead) wins2++;
+      const matchOver = wins1 >= 2 || wins2 >= 2;
+      if(matchOver){
+        const msg = wins1 >= 2 ? 'あなたの勝ち' : 'あなたの負け';
+        setTimeout(()=>{
+          showAnn(msg, 180);
+          modeSelEl.style.display='block';
+        }, 500);
+        return;
+      }
       setTimeout(()=>{
         round++; roundEl.textContent=`ROUND ${round}`;
         p1.hp=100; p2.hp=100;
