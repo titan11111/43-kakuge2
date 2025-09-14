@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40">
+  <symbol id="fan" viewBox="0 0 20 40">
+    <circle cx="10" cy="6" r="6"/>
+    <polygon points="10,12 2,2 6,0 10,8 14,0 18,2"/>
+    <rect x="8" y="12" width="4" height="14"/>
+    <polygon points="8,26 4,40 8,40 10,32 12,40 16,40 12,26"/>
+  </symbol>
+  <g fill="#000">
+    <use href="#fan" x="0"/>
+    <use href="#fan" x="20"/>
+    <use href="#fan" x="40"/>
+    <use href="#fan" x="60"/>
+    <use href="#fan" x="80"/>
+    <use href="#fan" x="100"/>
+    <use href="#fan" x="120"/>
+    <use href="#fan" x="140"/>
+    <use href="#fan" x="160"/>
+    <use href="#fan" x="180"/>
+  </g>
+</svg>
