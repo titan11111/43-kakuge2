@@ -1,51 +1,963 @@
-<!-- ===== index.html ===== -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>2-Line Fighter (Homage)</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>にゃんこクイズ - 愛猫と一緒に成長しよう！</title>
+    <style>
+        /* リセットCSS */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #FFE5F4, #E8F4FD, #FFF2E5);
+            background-size: 400% 400%;
+            animation: gradientShift 6s ease infinite;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* 画面の基本設定 */
+        .screen {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 182, 193, 0.3);
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* スタート画面 */
+        .title h1 {
+            text-align: center;
+            color: #FF69B4;
+            font-size: clamp(24px, 5vw, 36px);
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .title p {
+            text-align: center;
+            color: #666;
+            font-size: clamp(14px, 3vw, 18px);
+            margin-bottom: 30px;
+        }
+
+        .cat-display {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(145deg, #FFB6C1, #FFC0CB);
+            border-radius: 15px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .cat {
+            font-size: clamp(60px, 15vw, 120px);
+            margin: 10px 0;
+            animation: bounce 2s infinite;
+            display: inline-block;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .cat-name, .cat-level {
+            font-size: clamp(14px, 3vw, 18px);
+            color: #8B4513;
+            margin: 5px 0;
+            font-weight: bold;
+        }
+
+        /* レベル選択 */
+        .level-select {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .level-select h3 {
+            color: #FF69B4;
+            font-size: clamp(18px, 4vw, 24px);
+            margin-bottom: 20px;
+        }
+
+        .level-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .level-btn {
+            background: linear-gradient(145deg, #FFE4E1, #FFF0F5);
+            border: 2px solid #FFB6C1;
+            border-radius: 15px;
+            padding: 12px 20px;
+            font-size: clamp(14px, 3vw, 16px);
+            color: #8B4513;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-weight: bold;
+            min-width: 120px;
+        }
+
+        .level-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.3);
+            background: linear-gradient(145deg, #FFB6C1, #FFC0CB);
+        }
+
+        .level-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* ゲーム画面 */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .game-info {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: clamp(12px, 2.5vw, 16px);
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .timer {
+            background: linear-gradient(145deg, #FF69B4, #FFB6C1);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 50%;
+            font-size: clamp(16px, 4vw, 24px);
+            font-weight: bold;
+            min-width: 60px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .timer.warning {
+            background: linear-gradient(145deg, #FF6B6B, #FF8E8E);
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* 猫の状態表示 */
+        .cat-status {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        #gameCat {
+            font-size: clamp(40px, 10vw, 80px);
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .cat-emotion {
+            font-size: clamp(20px, 5vw, 30px);
+            position: absolute;
+            top: -10px;
+            right: calc(50% - 40px);
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        #catMessage {
+            color: #FF69B4;
+            font-size: clamp(14px, 3vw, 18px);
+            font-weight: bold;
+            margin-top: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 問題コンテナ */
+        .question-container {
+            margin: 30px 0;
+        }
+
+        #question {
+            background: linear-gradient(145deg, #FFF8DC, #FFFACD);
+            border: 2px solid #FFB6C1;
+            border-radius: 15px;
+            padding: 20px;
+            font-size: clamp(16px, 4vw, 22px);
+            color: #8B4513;
+            text-align: center;
+            margin-bottom: 25px;
+            line-height: 1.4;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: linear-gradient(145deg, #E6F3FF, #F0F8FF);
+            border: 2px solid #87CEEB;
+            border-radius: 12px;
+            padding: 15px 20px;
+            font-size: clamp(14px, 3vw, 18px);
+            color: #4B0082;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-weight: bold;
+            text-align: center;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(135, 206, 235, 0.3);
+            background: linear-gradient(145deg, #B0E0E6, #E0F6FF);
+        }
+
+        .option-btn.correct {
+            background: linear-gradient(145deg, #90EE90, #98FB98);
+            border-color: #32CD32;
+            color: #006400;
+            animation: correctPulse 0.6s ease;
+        }
+
+        .option-btn.incorrect {
+            background: linear-gradient(145deg, #FFB6C1, #FFC0CB);
+            border-color: #FF69B4;
+            color: #8B0000;
+            animation: shake 0.6s ease;
+        }
+
+        @keyframes correctPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* プログレスバー */
+        .progress-bar {
+            background: #E0E0E0;
+            border-radius: 10px;
+            height: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #FFB6C1, #FF69B4);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            box-shadow: 0 2px 5px rgba(255, 105, 180, 0.3);
+        }
+
+        /* 結果画面 */
+        .result-content {
+            text-align: center;
+        }
+
+        #resultTitle {
+            color: #FF69B4;
+            font-size: clamp(24px, 5vw, 32px);
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .final-score {
+            background: linear-gradient(145deg, #FFF8DC, #FFFACD);
+            border: 2px solid #FFB6C1;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            font-size: clamp(16px, 4vw, 20px);
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        /* 猫の進化表示 */
+        .cat-evolution {
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(145deg, #E6F3FF, #F0F8FF);
+            border-radius: 15px;
+            border: 2px solid #87CEEB;
+        }
+
+        .cat-before-after {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .evolution-step {
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .evolution-step .cat {
+            font-size: clamp(50px, 12vw, 100px);
+            margin: 10px 0;
+        }
+
+        .arrow {
+            font-size: clamp(24px, 6vw, 40px);
+            color: #FF69B4;
+            font-weight: bold;
+        }
+
+        #evolutionMessage {
+            font-size: clamp(14px, 3vw, 18px);
+            color: #4B0082;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        /* アクションボタン */
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .action-btn {
+            background: linear-gradient(145deg, #FFE4E1, #FFF0F5);
+            border: 2px solid #FFB6C1;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: clamp(14px, 3vw, 18px);
+            color: #8B4513;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            font-weight: bold;
+            min-width: 140px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 105, 180, 0.3);
+            background: linear-gradient(145deg, #FFB6C1, #FFC0CB);
+        }
+
+        .action-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* レスポンシブ対応 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 5px;
+            }
+            
+            .screen {
+                padding: 15px;
+                border-radius: 15px;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .game-info {
+                justify-content: center;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .cat-before-after {
+                flex-direction: column;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="ui">
-    <div class="names">
-      <span id="p1name">Hero</span>
-      <span id="round">ROUND 1</span>
-      <span id="p2name">Rival</span>
+    <div class="container">
+        <!-- スタート画面 -->
+        <div id="startScreen" class="screen active">
+            <div class="title">
+                <h1>🐱 にゃんこクイズ 🐱</h1>
+                <p>愛猫と一緒にクイズに挑戦しよう！</p>
+            </div>
+            
+            <div class="cat-display">
+                <div class="cat">🐱</div>
+                <p class="cat-name">まだ名前がないにゃ</p>
+                <p class="cat-level">レベル: 0</p>
+            </div>
+            
+            <div class="level-select">
+                <h3>レベルを選んでね</h3>
+                <div class="level-buttons">
+                    <button class="level-btn" data-level="1">レベル1 🌟</button>
+                    <button class="level-btn" data-level="2">レベル2 🌟🌟</button>
+                    <button class="level-btn" data-level="3">レベル3 🌟🌟🌟</button>
+                    <button class="level-btn" data-level="4">レベル4 🌟🌟🌟🌟</button>
+                    <button class="level-btn" data-level="5">レベル5 🌟🌟🌟🌟🌟</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ゲーム画面 -->
+        <div id="gameScreen" class="screen">
+            <div class="game-header">
+                <div class="game-info">
+                    <span id="currentLevel">レベル 1</span>
+                    <span id="questionNumber">問題 1/10</span>
+                    <span id="score">スコア: 0</span>
+                </div>
+                <div class="timer-container">
+                    <div class="timer" id="timer">30</div>
+                </div>
+            </div>
+
+            <div class="cat-status">
+                <div class="cat" id="gameCat">🐱</div>
+                <div class="cat-emotion" id="catEmotion">😊</div>
+                <p id="catMessage">がんばるにゃ！</p>
+            </div>
+
+            <div class="question-container">
+                <h2 id="question">問題がここに表示されます</h2>
+                <div class="options">
+                    <button class="option-btn" data-answer="0"></button>
+                    <button class="option-btn" data-answer="1"></button>
+                    <button class="option-btn" data-answer="2"></button>
+                    <button class="option-btn" data-answer="3"></button>
+                </div>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+        </div>
+
+        <!-- 結果画面 -->
+        <div id="resultScreen" class="screen">
+            <div class="result-content">
+                <h2 id="resultTitle">お疲れ様でした！</h2>
+                
+                <div class="final-score">
+                    <p>最終スコア: <span id="finalScore">0</span></p>
+                    <p>正解率: <span id="accuracy">0%</span></p>
+                </div>
+
+                <div class="cat-evolution">
+                    <div class="cat-before-after">
+                        <div class="evolution-step">
+                            <p>レベル前</p>
+                            <div class="cat" id="oldCat">🐱</div>
+                        </div>
+                        <div class="arrow">→</div>
+                        <div class="evolution-step">
+                            <p>レベル後</p>
+                            <div class="cat" id="newCat">🐱</div>
+                        </div>
+                    </div>
+                    <p id="evolutionMessage"></p>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="nextLevelBtn" class="action-btn">次のレベルに挑戦！</button>
+                    <button id="retryBtn" class="action-btn">もう一度挑戦</button>
+                    <button id="homeBtn" class="action-btn">ホームに戻る</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="bars">
-      <div class="bar"><div id="hp1" class="hp"></div></div>
-      <div class="bar"><div id="hp2" class="hp"></div></div>
-    </div>
-    <div id="announce"></div>
-    <div class="help">
-      <div>
-        <b>1P</b> A/D 移動, W ジャンプ, S しゃがみ, F 弱, G 強, R ライン, F+↘（QCF）:飛び, 後ろでガード, F+G:ホーミング, 前+G:突進, 下+G:対空
-      </div>
-      <div>
-        <b>2P</b> ←/→ 移動, ↑ ジャンプ, ↓ しゃがみ, K 弱, L 強, P ライン, K+↘:飛び, 後ろでガード, K+L:ホーミング, 前+L:突進, 下+L:対空
-      </div>
-    </div>
-  </div>
-  <canvas id="game" width="960" height="540"></canvas>
-  <div id="controls" class="controls">
-    <div class="pad">
-      <button class="up" data-btn="up">▲</button>
-      <button class="left" data-btn="left">◀</button>
-      <button class="right" data-btn="right">▶</button>
-      <button class="down" data-btn="down">▼</button>
-    </div>
-    <div class="actions">
-      <button data-btn="lp">LP</button>
-      <button data-btn="hp">HP</button>
-      <button data-btn="plane">PL</button>
-    </div>
-  </div>
-  <div id="modeSelect">
-    <button id="btnP2">2Pと対戦</button>
-    <button id="btnCPU">CPUと対戦</button>
-  </div>
-  <script src="script.js"></script>
+
+    <script>
+        // ゲームの状態管理
+        let gameState = {
+            currentLevel: 1,
+            currentQuestion: 0,
+            score: 0,
+            correctAnswers: 0,
+            totalQuestions: 10,
+            catLevel: 0,
+            timeLeft: 30,
+            timer: null,
+            questions: []
+        };
+
+        // 猫の進化段階
+        const catEvolutions = {
+            0: { emoji: '🐱', name: 'こねこちゃん', message: 'よろしくにゃ！' },
+            1: { emoji: '😺', name: 'げんきねこ', message: 'がんばるにゃ！' },
+            2: { emoji: '😸', name: 'えがおねこ', message: 'うれしいにゃ！' },
+            3: { emoji: '😻', name: 'らぶりーねこ', message: 'だいすきにゃ！' },
+            4: { emoji: '🤩', name: 'すたーねこ', message: 'すごいにゃ！' },
+            5: { emoji: '👑', name: 'おうさまねこ', message: 'さいこうにゃ！' }
+        };
+
+        // クイズ問題データベース
+        const quizDatabase = {
+            1: [ // レベル1 - 簡単
+                { question: '猫の鳴き声は何と言うでしょう？', options: ['ニャー', 'ワンワン', 'モーモー', 'ピヨピヨ'], correct: 0 },
+                { question: '猫の足は何本あるでしょう？', options: ['2本', '3本', '4本', '6本'], correct: 2 },
+                { question: '猫がよく遊ぶおもちゃはどれでしょう？', options: ['ボール', '毛玉', 'つみき', 'でんしゃ'], correct: 1 },
+                { question: '猫のひげの役割は何でしょう？', options: ['かざり', 'センサー', 'たべもの', 'ぶき'], correct: 1 },
+                { question: '猫が好きな場所はどこでしょう？', options: ['みず', 'あたたかいばしょ', 'うるさいばしょ', 'くらいばしょ'], correct: 1 },
+                { question: '猫の目は暗いところでどうなるでしょう？', options: ['見えなくなる', 'よく見える', 'いろがかわる', 'とじる'], correct: 1 },
+                { question: '猫のしっぽはどんな時に大きくなるでしょう？', options: ['うれしい時', 'おこった時', 'ねむい時', 'おなかがすいた時'], correct: 1 },
+                { question: '猫が「ゴロゴロ」と音を出すのはいつでしょう？', options: ['おこった時', 'こわい時', 'うれしい時', 'おなかがすいた時'], correct: 2 },
+                { question: '猫の耳はどんな形でしょう？', options: ['まる', 'さんかく', 'しかく', 'ほし'], correct: 1 },
+                { question: '猫がよく食べるものはどれでしょう？', options: ['くさ', 'さかな', 'いし', 'かみ'], correct: 1 }
+            ],
+            2: [ // レベル2 - 少し難しく
+                { question: '猫の平均寿命はどのくらいでしょう？', options: ['5年', '10年', '15年', '25年'], correct: 2 },
+                { question: '猫が毛玉を吐くのはなぜでしょう？', options: ['病気だから', '毛づくろいで飲み込んだ毛を出すため', 'おいしいから', 'あそびのため'], correct: 1 },
+                { question: '猫の視力は人間と比べてどうでしょう？', options: ['同じくらい', '人間より良い', '人間より悪い', '見えない'], correct: 2 },
+                { question: '猫が高いところから落ちても怪我をしにくいのはなぜでしょう？', options: ['軽いから', '毛がふわふわだから', 'バランス感覚が良いから', '運が良いから'], correct: 2 },
+                { question: '猫の鼻の模様は何と同じように個体識別ができるでしょう？', options: ['指紋', '声', '足音', '目の色'], correct: 0 },
+                { question: '猫が箱を好むのはなぜでしょう？', options: ['涼しいから', '安心できるから', '美味しいから', '遊べるから'], correct: 1 },
+                { question: '猫の舌がザラザラしているのはなぜでしょう？', options: ['病気だから', '毛づくろいのため', '味がよくわかるため', '威嚇のため'], correct: 1 },
+                { question: '猫が「ニャー」と鳴くのは主に誰に対してでしょう？', options: ['他の猫', '人間', '犬', '鳥'], correct: 1 },
+                { question: '猫の肉球の主な役割は何でしょう？', options: ['かわいさアップ', 'ショックアブソーバー', '体温調節', '武器'], correct: 1 },
+                { question: '猫が頭や体をこすりつけてくるのはなぜでしょう？', options: ['かゆいから', 'においをつけるため', 'あまえているから', '運動のため'], correct: 1 }
+            ],
+            3: [ // レベル3 - 中級
+                { question: '猫の品種で最も小さいとされるのはどれでしょう？', options: ['マンチカン', 'シンガプーラ', 'ペルシャ', 'メインクーン'], correct: 1 },
+                { question: '猫の睡眠時間は1日何時間くらいでしょう？', options: ['8時間', '12時間', '16時間', '20時間'], correct: 2 },
+                { question: '猫の体温は人間より高い？低い？', options: ['高い', '低い', '同じ', '測れない'], correct: 0 },
+                { question: '猫の心臓は1分間に何回くらい拍動するでしょう？', options: ['60回', '120回', '200回', '300回'], correct: 1 },
+                { question: '猫が水をあまり飲まないのはなぜでしょう？', options: ['水が嫌いだから', '祖先が砂漠の動物だったから', '病気だから', '年のせい'], correct: 1 },
+                { question: '猫のひげは何本くらいあるでしょう？（片側）', options: ['6本', '12本', '24本', '36本'], correct: 1 },
+                { question: '猫が「フシャー」と威嚇する時の姿勢はどれでしょう？', options: ['丸くなる', '背中を丸めて毛を逆立てる', '寝そべる', '走り回る'], correct: 1 },
+                { question: '猫の妊娠期間はどのくらいでしょう？', options: ['1ヶ月', '2ヶ月', '4ヶ月', '6ヶ月'], correct: 1 },
+                { question: '猫が毛づくろいに費やす時間は1日の何割でしょう？', options: ['1割', '3割', '5割', '7割'], correct: 1 },
+                { question: '猫の歯は全部で何本あるでしょう？', options: ['24本', '30本', '36本', '42本'], correct: 1 }
+            ],
+            4: [ // レベル4 - 上級
+                { question: '猫のDNAは人間のDNAと何パーセント似ているでしょう？', options: ['50%', '70%', '90%', '95%'], correct: 2 },
+                { question: '猫の品種「スコティッシュフォールド」の特徴は何でしょう？', options: ['長い毛', '折れ耳', '短いしっぽ', '大きな目'], correct: 1 },
+                { question: '猫が「ケケケ」と鳴くのはいつでしょう？', options: ['怒っている時', '獲物を見つけた時', '甘えている時', '眠い時'], correct: 1 },
+                { question: '猫の色覚について正しいのはどれでしょう？', options: ['人間と同じ', '白黒しか見えない', '青と緑が見える', '赤がよく見える'], correct: 2 },
+                { question: '猫の品種で最も大きくなるのはどれでしょう？', options: ['ペルシャ', 'メインクーン', 'ロシアンブルー', 'アメリカンショートヘア'], correct: 1 },
+                { question: '猫が人に頭突きをしてくるのをなんと言うでしょう？', options: ['ヘッドバット', 'バンキング', 'ヘッディング', 'アタック'], correct: 1 },
+                { question: '猫の瞳孔が縦に細くなるのはなぜでしょう？', options: ['かっこいいから', '光の調節のため', '獲物を狙うため', '感情表現'], correct: 1 },
+                { question: '猫の品種「ラグドール」の名前の由来は何でしょう？', options: ['大きいから', '抱っこされるとぐったりするから', 'ふわふわだから', '人形みたいだから'], correct: 1 },
+                { question: '猫が「ちゅーる」などの液状おやつを好むのはなぜでしょう？', options: ['甘いから', '匂いが強いから', '舐めやすいから', '全部正解'], correct: 3 },
+                { question: '野良猫の平均寿命は飼い猫よりどのくらい短いでしょう？', options: ['1-2年短い', '5-10年短い', '変わらない', '長い'], correct: 1 }
+            ],
+            5: [ // レベル5 - 最上級
+                { question: '猫の学名は何でしょう？', options: ['Felis domesticus', 'Felis catus', 'Felis silvestris', 'Felis cattus'], correct: 1 },
+                { question: '猫が人間を「大きな猫」だと思っているという説の根拠は？', options: ['鳴き方', '行動パターン', '大人になっても鳴く', '全部正解'], correct: 3 },
+                { question: '猫の品種「エジプシャンマウ」の特徴は？', options: ['無毛', '自然のスポット模様', '青い目', '巨大'], correct: 1 },
+                { question: '猫のフレーメン反応とは何でしょう？', options: ['毛が逆立つこと', '口を半開きにすること', 'しっぽを振ること', '丸くなること'], correct: 1 },
+                { question: '猫の祖先とされる「リビアヤマネコ」はどこに住んでいるでしょう？', options: ['南極', 'アフリカ・中東', '北極', '南アメリカ'], correct: 1 },
+                { question: '猫の品種で最も毛が長いとされるのは？', options: ['ペルシャ', 'メインクーン', 'ラグドール', 'ノルウェージャンフォレストキャット'], correct: 0 },
+                { question: '猫の「サイレントニャー」とは何でしょう？', options: ['声を出さずに鳴く仕草', '寝言', '威嚇', '病気'], correct: 0 },
+                { question: '猫の品種「ベンガル」の血統に含まれる野生猫は？', options: ['ライオン', 'ベンガルヤマネコ', 'チーター', 'ピューマ'], correct: 1 },
+                { question: '猫が「マーキング」で使う体の部位はいくつあるでしょう？', options: ['1つ', '3つ', '5つ', '7つ以上'], correct: 3 },
+                { question: '猫の「キャットニップ」への反応は何によるものでしょう？', options: ['味', '匂い成分', '食感', '色'], correct: 1 }
+            ]
+        };
+
+        // 画面要素の取得
+        const startScreen = document.getElementById('startScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const resultScreen = document.getElementById('resultScreen');
+
+        // ゲーム開始
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGame();
+            setupEventListeners();
+        });
+
+        function initializeGame() {
+            updateCatDisplay();
+            showScreen('startScreen');
+        }
+
+        function setupEventListeners() {
+            // レベル選択ボタン
+            document.querySelectorAll('.level-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const level = parseInt(this.dataset.level);
+                    startGame(level);
+                });
+            });
+
+            // 選択肢ボタン
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (!this.disabled) {
+                        selectAnswer(parseInt(this.dataset.answer));
+                    }
+                });
+            });
+
+            // 結果画面のボタン
+            document.getElementById('nextLevelBtn').addEventListener('click', function() {
+                if (gameState.currentLevel < 5) {
+                    startGame(gameState.currentLevel + 1);
+                } else {
+                    showScreen('startScreen');
+                }
+            });
+
+            document.getElementById('retryBtn').addEventListener('click', function() {
+                startGame(gameState.currentLevel);
+            });
+
+            document.getElementById('homeBtn').addEventListener('click', function() {
+                showScreen('startScreen');
+            });
+        }
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenName).classList.add('active');
+        }
+
+        function startGame(level) {
+            gameState.currentLevel = level;
+            gameState.currentQuestion = 0;
+            gameState.score = 0;
+            gameState.correctAnswers = 0;
+            gameState.timeLeft = 30;
+            gameState.questions = [...quizDatabase[level]].sort(() => Math.random() - 0.5);
+
+            updateGameDisplay();
+            showScreen('gameScreen');
+            loadQuestion();
+            startTimer();
+        }
+
+        function updateGameDisplay() {
+            document.getElementById('currentLevel').textContent = `レベル ${gameState.currentLevel}`;
+            document.getElementById('questionNumber').textContent = `問題 ${gameState.currentQuestion + 1}/${gameState.totalQuestions}`;
+            document.getElementById('score').textContent = `スコア: ${gameState.score}`;
+            
+            const progress = (gameState.currentQuestion / gameState.totalQuestions) * 100;
+            document.getElementById('progress').style.width = `${progress}%`;
+
+            updateCatStatus();
+        }
+
+        function updateCatStatus() {
+            const gameCat = document.getElementById('gameCat');
+            const catEmotion = document.getElementById('catEmotion');
+            const catMessage = document.getElementById('catMessage');
+
+            const currentCat = catEvolutions[gameState.catLevel];
+            gameCat.textContent = currentCat.emoji;
+
+            // 正解率に応じて猫の感情を変える
+            const accuracy = gameState.currentQuestion > 0 ? (gameState.correctAnswers / gameState.currentQuestion) : 1;
+            
+            if (accuracy >= 0.8) {
+                catEmotion.textContent = '😊';
+                catMessage.textContent = 'すごいにゃ！';
+                gameCat.style.transform = 'scale(1.1)';
+            } else if (accuracy >= 0.6) {
+                catEmotion.textContent = '😸';
+                catMessage.textContent = 'がんばってるにゃ！';
+                gameCat.style.transform = 'scale(1.05)';
+            } else if (accuracy >= 0.4) {
+                catEmotion.textContent = '😐';
+                catMessage.textContent = 'ふぁいとにゃ！';
+                gameCat.style.transform = 'scale(1)';
+            } else {
+                catEmotion.textContent = '😿';
+                catMessage.textContent = 'がんばるにゃ...';
+                gameCat.style.transform = 'scale(0.95)';
+            }
+        }
+
+        function loadQuestion() {
+            if (gameState.currentQuestion >= gameState.totalQuestions) {
+                endGame();
+                return;
+            }
+
+            const question = gameState.questions[gameState.currentQuestion];
+            document.getElementById('question').textContent = question.question;
+
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach((btn, index) => {
+                btn.textContent = question.options[index];
+                btn.disabled = false;
+                btn.className = 'option-btn';
+            });
+
+            updateGameDisplay();
+            resetTimer();
+        }
+
+        function selectAnswer(selectedIndex) {
+            const question = gameState.questions[gameState.currentQuestion];
+            const optionBtns = document.querySelectorAll('.option-btn');
+            
+            // すべてのボタンを無効化
+            optionBtns.forEach(btn => btn.disabled = true);
+
+            // 正解・不正解の表示
+            if (selectedIndex === question.correct) {
+                optionBtns[selectedIndex].classList.add('correct');
+                gameState.correctAnswers++;
+                gameState.score += Math.max(10, gameState.timeLeft * 2); // 残り時間に応じてボーナス
+                
+                // 正解時の猫のリアクション
+                showCatReaction(true);
+            } else {
+                optionBtns[selectedIndex].classList.add('incorrect');
+                optionBtns[question.correct].classList.add('correct');
+                
+                // 不正解時の猫のリアクション
+                showCatReaction(false);
+            }
+
+            // タイマーを止める
+            clearInterval(gameState.timer);
+
+            // 次の問題へ進む
+            setTimeout(() => {
+                gameState.currentQuestion++;
+                loadQuestion();
+            }, 1500);
+        }
+
+        function showCatReaction(isCorrect) {
+            const gameCat = document.getElementById('gameCat');
+            const catEmotion = document.getElementById('catEmotion');
+            const catMessage = document.getElementById('catMessage');
+
+            if (isCorrect) {
+                catEmotion.textContent = '🎉';
+                catMessage.textContent = 'やったにゃ！';
+                gameCat.style.animation = 'bounce 0.6s ease';
+                
+                // サウンド効果のシミュレーション（視覚的フィードバック）
+                gameCat.style.filter = 'brightness(1.3)';
+                setTimeout(() => {
+                    gameCat.style.filter = 'brightness(1)';
+                    gameCat.style.animation = '';
+                }, 600);
+            } else {
+                catEmotion.textContent = '💦';
+                catMessage.textContent = 'つぎはがんばるにゃ';
+                gameCat.style.animation = 'shake 0.6s ease';
+                
+                setTimeout(() => {
+                    gameCat.style.animation = '';
+                }, 600);
+            }
+        }
+
+        function startTimer() {
+            gameState.timeLeft = 30;
+            updateTimer();
+            
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                updateTimer();
+                
+                if (gameState.timeLeft <= 0) {
+                    selectAnswer(-1); // タイムアップで不正解扱い
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(gameState.timer);
+            startTimer();
+        }
+
+        function updateTimer() {
+            const timerElement = document.getElementById('timer');
+            timerElement.textContent = gameState.timeLeft;
+            
+            if (gameState.timeLeft <= 10) {
+                timerElement.classList.add('warning');
+            } else {
+                timerElement.classList.remove('warning');
+            }
+        }
+
+        function updateCatDisplay() {
+            const catDisplay = document.querySelector('.cat-display .cat');
+            const catName = document.querySelector('.cat-name');
+            const catLevel = document.querySelector('.cat-level');
+
+            const currentCat = catEvolutions[gameState.catLevel];
+            catDisplay.textContent = currentCat.emoji;
+            catName.textContent = currentCat.name;
+            catLevel.textContent = `レベル: ${gameState.catLevel}`;
+        }
+
+        function endGame() {
+            clearInterval(gameState.timer);
+            
+            // 猫のレベルアップ判定
+            const accuracy = gameState.correctAnswers / gameState.totalQuestions;
+            const oldCatLevel = gameState.catLevel;
+            
+            if (accuracy >= 0.8) {
+                gameState.catLevel = Math.min(gameState.catLevel + 1, 5);
+            } else if (accuracy >= 0.6) {
+                // レベル維持
+            } else {
+                // レベルは下がらない（優しい設計）
+            }
+
+            showResults(oldCatLevel);
+            showScreen('resultScreen');
+        }
+
+        function showResults(oldCatLevel) {
+            const accuracy = Math.round((gameState.correctAnswers / gameState.totalQuestions) * 100);
+            
+            document.getElementById('finalScore').textContent = gameState.score;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+
+            // 猫の進化表示
+            const oldCat = document.getElementById('oldCat');
+            const newCat = document.getElementById('newCat');
+            const evolutionMessage = document.getElementById('evolutionMessage');
+
+            oldCat.textContent = catEvolutions[oldCatLevel].emoji;
+            newCat.textContent = catEvolutions[gameState.catLevel].emoji;
+
+            if (gameState.catLevel > oldCatLevel) {
+                evolutionMessage.textContent = `おめでとう！${catEvolutions[gameState.catLevel].name}に進化したにゃ！`;
+                evolutionMessage.style.color = '#FF69B4';
+                evolutionMessage.style.fontWeight = 'bold';
+                
+                // レベルアップ音を再生
+                playSound('levelup');
+                
+                // 進化エフェクト
+                newCat.style.animation = 'bounce 2s infinite';
+            } else {
+                evolutionMessage.textContent = `${catEvolutions[gameState.catLevel].name}のままだにゃ。次回がんばろう！`;
+                evolutionMessage.style.color = '#8B4513';
+            }
+
+            // 結果に応じたタイトル変更
+            const resultTitle = document.getElementById('resultTitle');
+            if (accuracy >= 90) {
+                resultTitle.textContent = '🏆 パーフェクト！ 🏆';
+                resultTitle.style.color = '#FFD700';
+            } else if (accuracy >= 70) {
+                resultTitle.textContent = '✨ すばらしい！ ✨';
+                resultTitle.style.color = '#FF69B4';
+            } else if (accuracy >= 50) {
+                resultTitle.textContent = '👍 がんばったね！ 👍';
+                resultTitle.style.color = '#32CD32';
+            } else {
+                resultTitle.textContent = '💪 次回がんばろう！ 💪';
+                resultTitle.style.color = '#8B4513';
+            }
+
+            // 次のレベルボタンの表示制御
+            const nextLevelBtn = document.getElementById('nextLevelBtn');
+            if (gameState.currentLevel < 5 && accuracy >= 60) {
+                nextLevelBtn.style.display = 'block';
+                nextLevelBtn.textContent = `レベル${gameState.currentLevel + 1}に挑戦！`;
+            } else if (gameState.currentLevel >= 5) {
+                nextLevelBtn.style.display = 'none';
+            } else {
+                nextLevelBtn.style.display = 'none';
+            }
+
+            updateCatDisplay();
+        }
+    </script>
 </body>
 </html>
